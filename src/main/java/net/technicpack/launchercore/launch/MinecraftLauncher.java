@@ -63,7 +63,7 @@ public class MinecraftLauncher {
 
 	private List<String> buildCommands(User user) {
 		List<String> commands = new ArrayList<String>();
-		commands.add("\"" + OperatingSystem.getJavaDir() + "\"");
+		commands.add(OperatingSystem.getJavaDir());
 
 		OperatingSystem operatingSystem = OperatingSystem.getOperatingSystem();
 
@@ -81,7 +81,7 @@ public class MinecraftLauncher {
 		}
 		commands.add("-XX:MaxPermSize=" + permSize + "m");
 		commands.add("-Djava.library.path=" + new File(pack.getBinDir(), "natives").getAbsolutePath());
-		commands.add("-Dminecraft.applet.TargetDirectory="+pack.getInstalledDirectory().getAbsolutePath());
+		commands.add("-Dminecraft.applet.TargetDirectory=" +  pack.getInstalledDirectory().getAbsolutePath());
 		commands.add("-cp");
 		commands.add(buildClassPath());
 		commands.add(version.getMainClass());
@@ -119,7 +119,6 @@ public class MinecraftLauncher {
 	private String buildClassPath() {
 		StringBuilder result = new StringBuilder();
 		String separator = System.getProperty("path.separator");
-		result.append("\"");
 
 		// Add all the libraries to the classpath.
 		for (Library library : version.getLibrariesForOS()) {
@@ -161,8 +160,6 @@ public class MinecraftLauncher {
 			result.append(separator);
 		}
 		result.append(minecraft.getAbsolutePath());
-
-		result.append("\"");
 
 		return result.toString();
 	}
