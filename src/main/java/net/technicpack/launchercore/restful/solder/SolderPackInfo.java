@@ -19,6 +19,7 @@
 
 package net.technicpack.launchercore.restful.solder;
 
+import net.technicpack.launchercore.exception.BuildInaccessibleException;
 import net.technicpack.launchercore.exception.RestfulAPIException;
 import net.technicpack.launchercore.restful.Modpack;
 import net.technicpack.launchercore.restful.PackInfo;
@@ -32,8 +33,11 @@ public class SolderPackInfo extends RestObject implements PackInfo {
 	private String name;
 	private String display_name;
 	private String url;
+	private String icon;
 	private String icon_md5;
+	private String logo;
 	private String logo_md5;
+	private String background;
 	private String background_md5;
 	private String recommended;
 	private String latest;
@@ -69,17 +73,26 @@ public class SolderPackInfo extends RestObject implements PackInfo {
 
 	@Override
 	public Resource getIcon() {
-		return new Resource(solder.getMirrorUrl() + name + "/resources/icon.png", icon_md5);
+		if (icon == null) {
+			return new Resource(solder.getMirrorUrl() + name + "/resources/icon.png", logo_md5);
+		}
+		return new Resource(icon, icon_md5);
 	}
 
 	@Override
 	public Resource getBackground() {
-		return new Resource(solder.getMirrorUrl() + name + "/resources/background.jpg", background_md5);
+		if (background == null) {
+			return new Resource(solder.getMirrorUrl() + name + "/resources/background.jpg", logo_md5);
+		}
+		return new Resource(background, background_md5);
 	}
 
 	@Override
 	public Resource getLogo() {
-		return new Resource(solder.getMirrorUrl() + name + "/resources/logo_180.png", logo_md5);
+		if (logo == null) {
+			return new Resource(solder.getMirrorUrl() + name + "/resources/logo_180.png", logo_md5);
+		}
+		return new Resource(logo, logo_md5);
 	}
 
 	@Override
@@ -104,14 +117,18 @@ public class SolderPackInfo extends RestObject implements PackInfo {
 	}
 
 	@Override
-	public Modpack getModpack(String build) {
-		Modpack modpack = null;
+	public Modpack getModpack(String build) throws BuildInaccessibleException {
 		try {
-			modpack = RestObject.getRestObject(Modpack.class, SolderConstants.getSolderBuildUrl(solder.getUrl(), name, build));
+			Modpack pack = RestObject.getRestObject(Modpack.class, SolderConstants.getSolderBuildUrl(solder.getUrl(), name, build));
+
+			if (pack != null) {
+				return pack;
+			}
 		} catch (RestfulAPIException e) {
-			e.printStackTrace();
+			throw new BuildInaccessibleException(display_name, build, e);
 		}
-		return modpack;
+
+		throw new BuildInaccessibleException(display_name, build);
 	}
 
 	@Override

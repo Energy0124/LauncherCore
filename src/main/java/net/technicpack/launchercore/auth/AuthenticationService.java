@@ -19,6 +19,7 @@
 
 package net.technicpack.launchercore.auth;
 
+import net.technicpack.launchercore.exception.AuthenticationNetworkFailureException;
 import net.technicpack.launchercore.install.User;
 import net.technicpack.launchercore.install.Users;
 import net.technicpack.launchercore.util.Utils;
@@ -33,24 +34,17 @@ import java.net.URL;
 public class AuthenticationService {
 	private static final String AUTH_SERVER = "https://authserver.mojang.com/";
 
-	public static boolean refresh(User user) {
-		RefreshResponse response = requestRefresh(user);
-
-		return response.getError() != null;
-	}
-
-
-	public static RefreshResponse requestRefresh(User user) {
-		RefreshRequest refreshRequest = new RefreshRequest(user.getAccessToken(), user.getClientToken(), user.getProfile());
+	public static RefreshResponse requestRefresh(User user) throws AuthenticationNetworkFailureException {
+		RefreshRequest refreshRequest = new RefreshRequest(user.getAccessToken(), user.getClientToken());
 		String data = Utils.getMojangGson().toJson(refreshRequest);
 
 		RefreshResponse response;
 		try {
 			String returned = postJson(AUTH_SERVER + "refresh", data);
+			System.out.println(returned);
 			response = Utils.getMojangGson().fromJson(returned, RefreshResponse.class);
 		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
+			throw new AuthenticationNetworkFailureException(e);
 		}
 
 		return response;
@@ -88,7 +82,7 @@ public class AuthenticationService {
 		return IOUtils.toString(stream);
 	}
 
-	public static AuthResponse requestLogin(String username, String password, String clientToken) {
+	public static AuthResponse requestLogin(String username, String password, String clientToken) throws AuthenticationNetworkFailureException {
 		Agent agent = new Agent("Minecraft", "1");
 
 		AuthRequest request = new AuthRequest(agent, username, password, clientToken);
@@ -97,10 +91,10 @@ public class AuthenticationService {
 		AuthResponse response;
 		try {
 			String returned = postJson(AUTH_SERVER + "authenticate", data);
+			System.out.println("Auth: " + returned);
 			response = Utils.getMojangGson().fromJson(returned, AuthResponse.class);
 		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
+			throw new AuthenticationNetworkFailureException(e);
 		}
 		return response;
 	}

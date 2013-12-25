@@ -17,34 +17,30 @@
  * along with Technic Launcher Core.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.technicpack.launchercore.auth;
+package net.technicpack.launchercore.exception;
 
-public class Profile {
-	private String id;
-	private String name;
+import java.io.IOException;
 
-    public Profile() {
+public class PackNotAvailableOfflineException extends IOException {
+	private String packDisplayName;
+	private Throwable cause;
 
-    }
-
-    public Profile(String id, String name) {
-        this.id = id;
-        this.name = name;
-    }
-
-	public String getId() {
-		return id;
+	public PackNotAvailableOfflineException(String displayName) {
+		this.packDisplayName = displayName;
 	}
 
-	public String getName() {
-		return name;
+	public PackNotAvailableOfflineException(String displayName, Throwable cause) {
+		this.packDisplayName = displayName;
+		this.cause = cause;
 	}
 
 	@Override
-	public String toString() {
-		return "Profile{" +
-				"id='" + id + '\'' +
-				", name='" + name + '\'' +
-				'}';
+	public String getMessage() {
+		return "The modpack " + packDisplayName + " does not appear to be installed or is corrupt, and is not available for Offline Play.";
+	}
+
+	@Override
+	public Throwable getCause() {
+		return cause;
 	}
 }

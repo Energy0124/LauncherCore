@@ -20,6 +20,8 @@
 package net.technicpack.launchercore.restful;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonSyntaxException;
 import net.technicpack.launchercore.exception.RestfulAPIException;
 import org.apache.commons.io.IOUtils;
 
@@ -55,6 +57,10 @@ public class RestObject {
 			String data = IOUtils.toString(stream);
 			T result = gson.fromJson(data, restObject);
 
+			if (result == null ) {
+				throw new RestfulAPIException("Unable to access URL [" + url + "]");
+			}
+
 			if (result.hasError()) {
 				throw new RestfulAPIException("Error in response: " + result.getError());
 			}
@@ -64,6 +70,8 @@ public class RestObject {
 			throw new RestfulAPIException("Timed out accessing URL [" + url + "]", e);
 		}  catch (MalformedURLException e) {
 			throw new RestfulAPIException("Invalid URL [" + url + "]", e);
+		} catch (JsonParseException e) {
+			throw new RestfulAPIException("Error parsing response JSON at URL ["+url+"]",e);
 		} catch (IOException e) {
 			throw new RestfulAPIException("Error accessing URL [" + url + "]", e);
 		} finally {

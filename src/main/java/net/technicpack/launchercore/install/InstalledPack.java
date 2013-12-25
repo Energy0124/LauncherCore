@@ -56,6 +56,7 @@ public class InstalledPack {
 	private transient File savesDir;
 	private transient File cacheDir;
 	private transient File resourceDir;
+	private transient File modsDir;
 	private transient File coremodsDir;
 	private transient PackInfo info;
 	private transient PackRefreshListener refreshListener;
@@ -63,6 +64,8 @@ public class InstalledPack {
 	private boolean platform;
 	private String build;
 	private String directory;
+
+	private transient boolean isLocalOnly;
 
 	public InstalledPack(String name, boolean platform, String build, String directory) {
 		this();
@@ -80,6 +83,8 @@ public class InstalledPack {
 		downloading.put(logo, new AtomicReference<Boolean>(false));
 		downloading.put(background, new AtomicReference<Boolean>(false));
 		downloading.put(icon, new AtomicReference<Boolean>(false));
+		isLocalOnly = false;
+		build = RECOMMENDED;
 	}
 
 	public void setRefreshListener(PackRefreshListener refreshListener) {
@@ -103,6 +108,7 @@ public class InstalledPack {
 		savesDir = new File(installedDirectory, "saves");
 		cacheDir = new File(installedDirectory, "cache");
 		resourceDir = new File(installedDirectory, "resources");
+		modsDir = new File(installedDirectory, "mods");
 		coremodsDir = new File(installedDirectory, "coremods");
 
 		binDir.mkdirs();
@@ -110,6 +116,7 @@ public class InstalledPack {
 		savesDir.mkdirs();
 		cacheDir.mkdirs();
 		resourceDir.mkdirs();
+		modsDir.mkdirs();
 		coremodsDir.mkdirs();
 	}
 
@@ -130,15 +137,33 @@ public class InstalledPack {
 
 	public void setInfo(PackInfo info) {
 		this.info = info;
+		this.isLocalOnly = false;
+	}
+
+	public boolean isLocalOnly() {
+		return isLocalOnly;
+	}
+
+	public void setLocalOnly() {
+		this.isLocalOnly = true;
+	}
+
+	public boolean hasLogo()
+	{
+		return (getLogo() != BACKUP_LOGO);
 	}
 
 	public String getBuild() {
-		if (build.equals(RECOMMENDED)) {
-			return info.getRecommended();
+		if (info != null)
+		{
+			if (build.equals(RECOMMENDED)) {
+				return info.getRecommended();
+			}
+			if (build.equals(LATEST)) {
+				return info.getLatest();
+			}
 		}
-		if (build.equals(LATEST)) {
-			return info.getLatest();
-		}
+
 		return build;
 	}
 
@@ -197,6 +222,10 @@ public class InstalledPack {
 		return resourceDir;
 	}
 
+	public File getModsDir() {
+		return modsDir;
+	}
+
 	public File getCoremodsDir() {
 		return coremodsDir;
 	}
@@ -235,6 +264,10 @@ public class InstalledPack {
 
 		if (!cached) {
 			downloadImage(image, resourceFile, url, md5);
+		}
+
+		if (image.get() == null) {
+			return false;
 		}
 
 		return cached;
@@ -332,6 +365,10 @@ public class InstalledPack {
 			BACKUP_ICON = loadBackup("/org/spoutcraft/launcher/resources/icon.png");
 		}
 		return BACKUP_ICON;
+	}
+
+	public String getIconPath() {
+		return Utils.getAssetsDirectory() + "/packs/" + getName() + "/icon.png";
 	}
 
 	@Override

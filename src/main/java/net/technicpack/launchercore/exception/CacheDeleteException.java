@@ -17,34 +17,34 @@
  * along with Technic Launcher Core.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.technicpack.launchercore.auth;
+package net.technicpack.launchercore.exception;
 
-public class Profile {
-	private String id;
-	private String name;
+import java.io.IOException;
 
-    public Profile() {
+public class CacheDeleteException extends IOException {
+	private Throwable cause;
+	String filePath;
 
-    }
-
-    public Profile(String id, String name) {
-        this.id = id;
-        this.name = name;
-    }
-
-	public String getId() {
-		return id;
+	public CacheDeleteException(String filePath) {
+		this.filePath = filePath;
 	}
 
-	public String getName() {
-		return name;
+	public CacheDeleteException(String filePath, Throwable cause) {
+		this.filePath = filePath;
+		this.cause = cause;
+	}
+
+	public String getFilePath() {
+		return this.filePath;
 	}
 
 	@Override
-	public String toString() {
-		return "Profile{" +
-				"id='" + id + '\'' +
-				", name='" + name + '\'' +
-				'}';
+	public Throwable getCause() {
+		return this.cause;
+	}
+
+	@Override
+	public String getMessage() {
+		return "An error occurred while attempting to delete '"+filePath+"' from the cache:";
 	}
 }

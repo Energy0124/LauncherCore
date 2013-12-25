@@ -23,6 +23,7 @@ import net.technicpack.launchercore.install.InstalledPack;
 import net.technicpack.launchercore.install.User;
 import net.technicpack.launchercore.minecraft.CompleteVersion;
 import net.technicpack.launchercore.minecraft.Library;
+import net.technicpack.launchercore.restful.PlatformConstants;
 import net.technicpack.launchercore.util.OperatingSystem;
 import net.technicpack.launchercore.util.Utils;
 import org.apache.commons.lang3.text.StrSubstitutor;
@@ -46,8 +47,12 @@ public class MinecraftLauncher {
 		this.version = version;
 	}
 
-	public MinecraftProcess launch(User user) throws IOException {
-		List<String> commands = buildCommands(user);
+	public MinecraftProcess launch(User user, LaunchOptions options) throws IOException {
+		return launch(user, options, null);
+	}
+
+	public MinecraftProcess launch(User user, LaunchOptions options, MinecraftExitListener exitListener) throws IOException {
+		List<String> commands = buildCommands(user, options);
 		StringBuilder full = new StringBuilder();
 		boolean first = true;
 
@@ -57,11 +62,17 @@ public class MinecraftLauncher {
 			first = false;
 		}
 		System.out.println("Running " + full.toString());
+		Utils.pingHttpURL(PlatformConstants.getRunCountUrl(pack.getName()));
+		if (!Utils.sendTracking("runModpack", pack.getName(), pack.getBuild())) {
+			System.out.println("Failed to record event");
+		}
 		Process process = new ProcessBuilder(commands).directory(pack.getInstalledDirectory()).redirectErrorStream(true).start();
-		return new MinecraftProcess(commands, process);
+		MinecraftProcess mcProcess = new MinecraftProcess(commands, process);
+		if (exitListener != null) mcProcess.setExitListener(exitListener);
+		return mcProcess;
 	}
 
-	private List<String> buildCommands(User user) {
+	private List<String> buildCommands(User user, LaunchOptions options) {
 		List<String> commands = new ArrayList<String>();
 		commands.add(OperatingSystem.getJavaDir());
 
@@ -81,11 +92,14 @@ public class MinecraftLauncher {
 		}
 		commands.add("-XX:MaxPermSize=" + permSize + "m");
 		commands.add("-Djava.library.path=" + new File(pack.getBinDir(), "natives").getAbsolutePath());
+		// Tell forge 1.5 to download from our mirror instead
+		commands.add("-Dfml.core.libraries.mirror=http://mirror.technicpack.net/Technic/lib/fml/%s");
 		commands.add("-Dminecraft.applet.TargetDirectory=" +  pack.getInstalledDirectory().getAbsolutePath());
 		commands.add("-cp");
 		commands.add(buildClassPath());
 		commands.add(version.getMainClass());
 		commands.addAll(Arrays.asList(getMinecraftArguments(version, pack.getInstalledDirectory(), user)));
+		options.appendToCommands(commands);
 
 		//TODO: Add all the other less important commands
 		return commands;
@@ -127,13 +141,16 @@ public class MinecraftLauncher {
 			}
 
 			// If minecraftforge is described in the libraries, skip it
-			if (library.getName().startsWith("net.minecraftforge:minecraftforge")) {
+			// HACK - Please let us get rid of this when we move to actually hosting forge,
+			// or at least only do it if the users are sticking with modpack.jar
+			if (library.getName().startsWith("net.minecraftforge:minecraftforge") ||
+					library.getName().startsWith("net.minecraftforge:forge")) {
 				continue;
 			}
 
 			File file = new File(Utils.getCacheDirectory(), library.getArtifactPath());
 			if (!file.isFile() || !file.exists()) {
-				throw new RuntimeException("Library " + library + " not found.");
+				throw new RuntimeException("Library " + library.getName() + " not found.");
 			}
 
 			if (result.length() > 1) {

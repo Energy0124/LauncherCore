@@ -24,6 +24,7 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.UUID;
 import java.util.logging.Level;
 
 public class Settings {
@@ -32,9 +33,12 @@ public class Settings {
 	public static Settings instance = new Settings();
 	private String directory;
 	private int memory;
+	private LaunchAction launchAction;
 	private String buildStream = STABLE;
 	private boolean showConsole;
+	private String languageCode = "default";
 	private boolean migrate;
+	private String clientId = UUID.randomUUID().toString();
 	private String migrateDir;
 
 	public static void load() {
@@ -84,6 +88,15 @@ public class Settings {
 		save();
 	}
 
+	public static LaunchAction getLaunchAction() {
+		return instance.launchAction;
+	}
+
+	public static void setLaunchAction(LaunchAction launchAction) {
+	    instance.launchAction = launchAction;
+	    save();
+	}
+
 	public static String getBuildStream() {
 		return instance.buildStream;
 	}
@@ -92,6 +105,10 @@ public class Settings {
 		instance.buildStream = buildStream;
 		save();
 	}
+	
+	public static String getClientId() {
+		return instance.clientId;
+	}
 
 	public static boolean getShowConsole() {
 		return instance.showConsole;
@@ -99,6 +116,15 @@ public class Settings {
 
 	public static void setShowConsole(boolean showConsole) {
 		instance.showConsole = showConsole;
+		save();
+	}
+
+	public static String getLanguageCode() {
+		return instance.languageCode;
+	}
+
+	public static void setLanguageCode(String languageCode) {
+		instance.languageCode = languageCode;
 		save();
 	}
 
@@ -129,6 +155,8 @@ public class Settings {
 				", showConsole=" + showConsole +
 				", migrate=" + migrate +
 				", migrateDir='" + migrateDir + '\'' +
+				", launchAction='" + launchAction +'\'' +
+				", languageCode='" + languageCode + '\'' +
 				'}';
 	}
 }

@@ -107,16 +107,16 @@ public class Library {
 	public String getDownloadUrl(String path) {
 		if (this.url != null) {
 			String checkUrl = url + path;
-			if (Utils.pingURL(checkUrl)) {
+			if (Utils.pingHttpURL(checkUrl)) {
 				return checkUrl;
 			}
 			for (String string : fallback) {
 				checkUrl = string + path;
-				if (Utils.pingURL(checkUrl)) {
+				if (Utils.pingHttpURL(checkUrl)) {
 					return checkUrl;
 				}
 			}
 		}
-		return "https://s3.amazonaws.com/Minecraft.Download/libraries/" + path;
+		return " https://libraries.minecraft.net/" + path;
 	}
 }
