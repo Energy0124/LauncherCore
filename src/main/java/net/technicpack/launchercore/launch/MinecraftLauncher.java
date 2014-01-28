@@ -20,7 +20,7 @@
 package net.technicpack.launchercore.launch;
 
 import net.technicpack.launchercore.install.InstalledPack;
-import net.technicpack.launchercore.install.User;
+import net.technicpack.launchercore.install.user.User;
 import net.technicpack.launchercore.minecraft.CompleteVersion;
 import net.technicpack.launchercore.minecraft.Library;
 import net.technicpack.launchercore.restful.PlatformConstants;
