@@ -8,6 +8,10 @@ import net.technicpack.launchercore.minecraft.MojangConstants;
 import net.technicpack.launchercore.util.DownloadUtils;
 import net.technicpack.launchercore.util.MD5Utils;
 import net.technicpack.launchercore.util.Utils;
+import net.technicpack.launchercore.util.verifiers.FileSizeVerifier;
+import net.technicpack.launchercore.util.verifiers.IFileVerifier;
+import net.technicpack.launchercore.util.verifiers.MD5FileVerifier;
+import net.technicpack.launchercore.util.verifiers.ValidJsonFileVerifier;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -41,12 +45,10 @@ public class GetAssetsIndexTask extends ListenerTask {
 
 		(new File(output.getParent())).mkdirs();
 
-		if (!output.exists()) {
-			DownloadUtils.downloadFile(MojangConstants.getAssetsIndex(assets), output.getName(), output.getAbsolutePath(), null, null, this);
-		}
+        IFileVerifier fileVerifier = new ValidJsonFileVerifier();
 
-		if (!output.exists()) {
-			throw new DownloadException("Failed to download "+output.getName()+".");
+		if (!output.exists() || !fileVerifier.isFileValid(output)) {
+			DownloadUtils.downloadFile(MojangConstants.getAssetsIndex(assets), output.getName(), output.getAbsolutePath(), null, fileVerifier, this);
 		}
 
 		String json = FileUtils.readFileToString(output, Charset.forName("UTF-8"));
@@ -73,6 +75,7 @@ public class GetAssetsIndexTask extends ListenerTask {
 			String friendlyName = field.getKey();
 			JsonObject file = field.getValue().getAsJsonObject();
 			String hash = file.get("hash").getAsString();
+            long size = file.get("size").getAsLong();
 
 			File location = new File(Utils.getAssetsDirectory() + File.separator + "objects" + File.separator + hash.substring(0, 2) + File.separator, hash);
 			String url = MojangConstants.getResourceUrl(hash);
@@ -81,7 +84,7 @@ public class GetAssetsIndexTask extends ListenerTask {
 
 			File virtualOut =  new File(Utils.getAssetsDirectory() + File.separator + "virtual" + File.separator + assets + File.separator + friendlyName);
 
-			queue.AddTask(new EnsureFileTask(location, null, url, virtualOut.getName()));
+			queue.AddTask(new EnsureFileTask(location, new FileSizeVerifier(size), null, url, virtualOut.getName()));
 
 			if (isVirtual && !virtualOut.exists()) {
 				(new File(virtualOut.getParent())).mkdirs();
