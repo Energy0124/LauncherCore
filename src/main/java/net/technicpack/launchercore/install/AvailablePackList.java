@@ -92,8 +92,10 @@ public class AvailablePackList implements IAuthListener, PackRefreshListener {
 
 		index += offset;
 
-		while (index < 0) { index += mPackStore.getInstalledPacks().size(); }
-		while (index >= mPackStore.getInstalledPacks().size()) { index -= mPackStore.getInstalledPacks().size(); }
+        int size = mPackStore.getPackNames().size();
+
+		while (index < 0) { index += size; }
+		while (index >= size) { index -= size; }
 
 		return mPackStore.getInstalledPacks().get(mPackStore.getPackNames().get(index));
 	}
@@ -128,8 +130,7 @@ public class AvailablePackList implements IAuthListener, PackRefreshListener {
 							PlatformPackInfo platformPackInfo = PlatformPackInfo.getPlatformPackInfo(name);
 							PackInfo info = platformPackInfo;
 							if (platformPackInfo.hasSolder()) {
-								SolderPackInfo solderPackInfo = SolderPackInfo.getSolderPackInfo(platformPackInfo.getSolder(), name, threadUser);
-								info = solderPackInfo;
+                                info = SolderPackInfo.getSolderPackInfo(platformPackInfo.getSolder(), name, threadUser);
 							}
 
 							info.getLogo();
@@ -212,7 +213,7 @@ public class AvailablePackList implements IAuthListener, PackRefreshListener {
 			public void run() {
 				for (String solder : mForcedSolderPacks) {
 					try {
-						SolderPackInfo info = SolderPackInfo.getSolderPackInfo(solder, threadUser);
+						SolderPackInfo info = SolderPackInfo.getSolderPackInfo(solder);
 						if (info == null) {
 							throw new RestfulAPIException();
 						}

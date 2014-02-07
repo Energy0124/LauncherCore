@@ -194,7 +194,11 @@ public class InstalledPack {
 		}
 		installedDirectory = packPath;
 		String path = installedDirectory.getAbsolutePath();
-		if (path.startsWith(Utils.getModpacksDirectory().getAbsolutePath())) {
+        if (path.equals(Utils.getModpacksDirectory().getAbsolutePath())) {
+            directory = MODPACKS_DIR;
+        } else if (path.equals(Utils.getLauncherDirectory().getAbsolutePath())) {
+            directory = LAUNCHER_DIR;
+        } else if (path.startsWith(Utils.getModpacksDirectory().getAbsolutePath())) {
 			directory = MODPACKS_DIR + path.substring(Utils.getModpacksDirectory().getAbsolutePath().length() + 1);
 		} else if (path.startsWith(Utils.getLauncherDirectory().getAbsolutePath())) {
 			directory = LAUNCHER_DIR + path.substring(Utils.getLauncherDirectory().getAbsolutePath().length() + 1);
@@ -275,7 +279,19 @@ public class InstalledPack {
 
 	private boolean loadCachedImage(AtomicReference<BufferedImage> image, File file, String url, String md5) {
 		try {
-			if (file.exists() && (url.isEmpty() || md5.isEmpty() || MD5Utils.getMD5(file).equalsIgnoreCase(md5))) {
+            if (!file.exists())
+                return false;
+
+            boolean reloadImage = (url.isEmpty() || md5.isEmpty());
+
+            if (!reloadImage) {
+                String fileMd5 = MD5Utils.getMD5(file);
+
+                if (fileMd5 != null && !fileMd5.isEmpty())
+                    reloadImage = fileMd5.equalsIgnoreCase(md5);
+            }
+
+			if (reloadImage) {
 				BufferedImage newImage;
 				newImage = ImageIO.read(file);
 				image.set(newImage);
