@@ -17,7 +17,7 @@
  * along with Technic Launcher Core.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.technicpack.launchercore.util;
+package net.technicpack.launchercore.mirror.download;
 
 import java.io.*;
 import java.net.*;
@@ -29,6 +29,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import net.technicpack.launchercore.exception.DownloadException;
 import net.technicpack.launchercore.exception.PermissionDeniedException;
 
+import net.technicpack.launchercore.util.DownloadListener;
+import net.technicpack.launchercore.util.Utils;
 import org.apache.commons.io.IOUtils;
 
 public class Download implements Runnable {
@@ -44,8 +46,8 @@ public class Download implements Runnable {
 	private File outFile = null;
 	private Exception exception = null;
 
-	public Download(String url, String name, String outPath) throws MalformedURLException {
-		this.url = new URL(url);
+	public Download(URL url, String name, String outPath) throws MalformedURLException {
+		this.url = url;
 		this.outPath = outPath;
 		this.name = name;
 	}

@@ -4,7 +4,7 @@ import net.technicpack.launchercore.exception.DownloadException;
 import net.technicpack.launchercore.install.InstalledPack;
 import net.technicpack.launchercore.minecraft.CompleteVersion;
 import net.technicpack.launchercore.minecraft.Library;
-import net.technicpack.launchercore.util.DownloadUtils;
+import net.technicpack.launchercore.mirror.MirrorStore;
 import net.technicpack.launchercore.util.OperatingSystem;
 import net.technicpack.launchercore.util.Utils;
 import net.technicpack.launchercore.util.verifiers.IFileVerifier;
@@ -18,6 +18,7 @@ import java.nio.charset.Charset;
 
 public class HandleVersionFileTask implements IInstallTask {
 	private InstalledPack pack;
+    private String libraryName;
 
 	public HandleVersionFileTask(InstalledPack pack) {
 		this.pack = pack;
@@ -25,7 +26,10 @@ public class HandleVersionFileTask implements IInstallTask {
 
 	@Override
 	public String getTaskDescription() {
-		return "Processing version.";
+        if (libraryName == null)
+		    return "Processing version.";
+        else
+            return "Verifying "+libraryName+".";
 	}
 
 	@Override
@@ -52,6 +56,10 @@ public class HandleVersionFileTask implements IInstallTask {
 				continue;
 			}
 
+            String[] nameBits = library.getName().split(":",3);
+            libraryName = nameBits[1]+"-"+nameBits[2]+".jar";
+            queue.RefreshProgress();
+
 			String natives = null;
 			File extractDirectory = null;
 			if (library.getNatives() != null) {
@@ -63,8 +71,8 @@ public class HandleVersionFileTask implements IInstallTask {
 			}
 
 			String path = library.getArtifactPath(natives).replace("${arch}", System.getProperty("sun.arch.data.model"));
-			String url = library.getDownloadUrl(path).replace("${arch}", System.getProperty("sun.arch.data.model"));
-			String md5 = DownloadUtils.getETag(url);
+			String url = library.getDownloadUrl(path, queue.getMirrorStore()).replace("${arch}", System.getProperty("sun.arch.data.model"));
+			String md5 = queue.getMirrorStore().getETag(url);
 
 			File cache = new File(Utils.getCacheDirectory(), path);
 			if (cache.getParentFile() != null) {

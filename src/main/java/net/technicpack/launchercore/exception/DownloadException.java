@@ -20,9 +20,10 @@
 package net.technicpack.launchercore.exception;
 
 import java.io.IOException;
+import java.net.URL;
 
 public class DownloadException extends IOException {
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 
 	private final Throwable cause;
 	private final String message;

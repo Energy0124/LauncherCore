@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import net.technicpack.launchercore.exception.DownloadException;
 import net.technicpack.launchercore.install.InstalledPack;
 import net.technicpack.launchercore.minecraft.MojangConstants;
-import net.technicpack.launchercore.util.DownloadUtils;
+import net.technicpack.launchercore.mirror.MirrorStore;
 import net.technicpack.launchercore.util.Utils;
 import net.technicpack.launchercore.util.verifiers.FileSizeVerifier;
 import net.technicpack.launchercore.util.verifiers.IFileVerifier;
@@ -44,9 +44,10 @@ public class GetAssetsIndexTask extends ListenerTask {
 		(new File(output.getParent())).mkdirs();
 
         IFileVerifier fileVerifier = new ValidJsonFileVerifier();
+        String assetsUrl = MojangConstants.getAssetsIndex(assets);
 
 		if (!output.exists() || !fileVerifier.isFileValid(output)) {
-			DownloadUtils.downloadFile(MojangConstants.getAssetsIndex(assets), output.getName(), output.getAbsolutePath(), null, fileVerifier, this);
+			queue.getMirrorStore().downloadFile(assetsUrl, output.getName(), output.getAbsolutePath(), null, fileVerifier, this);
 		}
 
 		String json = FileUtils.readFileToString(output, Charset.forName("UTF-8"));
